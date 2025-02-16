@@ -1,3 +1,5 @@
+import { StatusCodes } from "http-status-codes";
+
 export const internalErrorResponse = (error) => {
     return {
         success: false,
@@ -8,18 +10,25 @@ export const internalErrorResponse = (error) => {
 };
 
 export const customErrorResponse = (error) => {
-    if (!error.explanation && !error.message) {
-        return internalErrorResponse(error);
-    }
-
-    if (!error.message && !error.explanation)
+    if (!error || typeof error !== "object") {
         return {
             success: false,
-            err: error.explanation,
+            err: "An unknown error occurred",
             data: {},
-            message: error.message
+            message: "Internal Server Error",
+            statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
         };
+    }
+
+    return {
+        success: false,
+        err: error.explanation || error.message || "An error occurred",
+        data: {},
+        message: error.message || "Internal Server Error",
+        statusCode: error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR,
+    };
 };
+
 
 
 export const successResponse = (data, message) => {

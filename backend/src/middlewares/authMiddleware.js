@@ -18,7 +18,7 @@ export const isAuthenticated = async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded; // Attach user data to request object
         next();
-    } catch (error) {
+    } catch {
         return res.status(StatusCodes.UNAUTHORIZED).json(
             customErrorResponse({
                 explanation: "Invalid or expired token",
@@ -27,3 +27,4 @@ export const isAuthenticated = async (req, res, next) => {
         );
     }
 };
+
