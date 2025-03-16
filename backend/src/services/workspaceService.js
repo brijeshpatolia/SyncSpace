@@ -3,6 +3,9 @@ import workspaceRepository from '../repositories/workspaceRepository.js'
 import { v4 as uuidv4 } from 'uuid'
 import { customErrorResponse } from '../utils/common/responseObjects.js'
 import { StatusCodes } from 'http-status-codes'
+import { addEmailtoMailQueue } from '../producers/mailQueueProducer.js'
+import mailObjects from '../utils/common/mailObjects.js'
+import { getUserById } from '../repositories/userRepository.js'
 
 export const createWorkspaceService = async (workspaceData) => {
   try {
@@ -100,7 +103,6 @@ export const deleteWorkspaceService = async (workspaceId, userId) => {
   }
 }
 
-
 export const getWorkspaceService = async (workspaceId, userId) => {
   try {
     console.log(
@@ -156,7 +158,6 @@ export const getWorkspaceService = async (workspaceId, userId) => {
     })
   }
 }
-
 
 export const getWorkspaceByJoinCodeService = async (joinCode) => {
   try {
@@ -260,28 +261,47 @@ export const addMemberToWorkspaceService = async (
   role = 'Member'
 ) => {
   try {
-    const workspace = await workspaceRepository.getById(workspaceId)
+    const workspace = await workspaceRepository.getById(workspaceId);
     if (!workspace) {
       throw customErrorResponse({
         message: 'Workspace not found.',
-        statusCode: StatusCodes.NOT_FOUND
-      })
+        statusCode: StatusCodes.NOT_FOUND,
+      });
     }
 
     const updatedWorkspace = await workspaceRepository.addMemberToWorkspace(
       userId,
       workspaceId,
       role
-    )
-    return updatedWorkspace
+    );
+
+    const user = await getUserById(userId);
+    if (!user || !user.email) {
+      throw customErrorResponse({
+        message: 'User email not found for email notification.',
+        statusCode: StatusCodes.BAD_REQUEST,
+      });
+    }
+
+    await addEmailtoMailQueue({
+      from: mailObjects.from,
+      to: user.email,
+      subject: 'You have been added to a workspace!',
+      text: `Hello ${user.username},\n\nYou have been successfully added to the workspace "${updatedWorkspace.name}".\n\nRegards,\nTeam`,
+    });
+
+    console.log(`[SUCCESS] Email queued for notification to user: ${user.email}`);
+
+    return updatedWorkspace;
   } catch (error) {
-    console.error('Error adding member to workspace:', error)
+    console.error('Error adding member to workspace:', error);
     throw customErrorResponse({
       message: error.message || 'Error adding member to workspace.',
-      statusCode: error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR
-    })
+      statusCode: error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR,
+    });
   }
-}
+};
+
 
 export const addChannelToWorkspaceService = async (
   workspaceId,
