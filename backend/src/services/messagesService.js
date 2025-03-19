@@ -14,7 +14,8 @@ export const getMessagesService = async (messageParams, page, limit, userId) => 
             });
         }
 
-        await isMemberPartOfWorkspace(channel.workspaceId, userId); // Throws error if not a member
+        await isMemberPartOfWorkspace(channel.workspaceId.toString(), userId);
+ // Throws error if not a member
 
         return await messageRepository.getPaginatedMessages(messageParams, page, limit);
     } catch (error) {
