@@ -6,11 +6,13 @@ import connectDB from './config/dbconfig.js'
 import bullBoardApp from './server/bullboard.js'
 import { Server } from 'socket.io'
 import { createServer } from 'http'
+import messageHandler from './controllers/channelSocketController.js'
+
 
 const app = express()
 const server = createServer(app)
 
-const io = new Server(server)
+export const io = new Server(server)
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
@@ -21,7 +23,7 @@ app.get('/ping', (req, res) => {
 })
 
 io.on('connection', (socket) => {
-  console.log('a user connected', socket.id)
+  messageHandler(io , socket)
 })
 
 server.listen(PORT, async () => {

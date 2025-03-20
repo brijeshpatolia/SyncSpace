@@ -15,7 +15,7 @@ const messageSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Channel',
         required: [true, 'Channel ID is required'],
-        unique: true, // ensure that messages in a channel are unique
+        
     },
     senderId: {
         type: mongoose.Schema.Types.ObjectId,

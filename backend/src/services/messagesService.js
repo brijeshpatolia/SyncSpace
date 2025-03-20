@@ -15,11 +15,42 @@ export const getMessagesService = async (messageParams, page, limit, userId) => 
         }
 
         await isMemberPartOfWorkspace(channel.workspaceId.toString(), userId);
- // Throws error if not a member
 
-        return await messageRepository.getPaginatedMessages(messageParams, page, limit);
+        // Fetch paginated messages
+        const messages = await messageRepository.getPaginatedMessages(messageParams, page, limit);
+        console.log("[DEBUG] Messages fetched:", messages.length);
+
+        return messages;
     } catch (error) {
         console.error("[ERROR] getMessagesService:", error.message);
-        throw error; // Ensures controller catches and returns proper error response
+        throw error;
+    }
+};
+
+export const createMessageService = async ({ body, image }, userId, channelId) => {
+    try {
+        const channel = await Channel.findById(channelId);
+        if (!channel) {
+            throw customErrorResponse({
+                message: "Channel not found.",
+                statusCode: StatusCodes.NOT_FOUND
+            });
+        }
+
+        await isMemberPartOfWorkspace(channel.workspaceId.toString(), userId);
+
+        const newMessage = await messageRepository.create({
+            body,
+            image,
+            senderId: userId,
+            channelId,
+            workspaceId: channel.workspaceId
+        });
+
+        console.log("[SUCCESS] Message created:", newMessage);
+        return newMessage;
+    } catch (error) {
+        console.error("[ERROR] createMessageService:", error);
+        throw error;
     }
 };
