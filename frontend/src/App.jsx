@@ -5,16 +5,16 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { AppRoutes } from '@/Routes';
 
-import { AuthContextProvider } from './context/AuthContext';
+import { AppContextProvider } from './context/AppContextProvider';
 
 function App() {
   const queryClient = new QueryClient();
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthContextProvider>
+      <AppContextProvider>
         <AppRoutes />
         <Toaster />
-      </AuthContextProvider>
+      </AppContextProvider>
     </QueryClientProvider>
   );
 }
