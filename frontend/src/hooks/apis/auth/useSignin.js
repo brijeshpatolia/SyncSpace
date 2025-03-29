@@ -1,6 +1,9 @@
+'use client';
+
 import { useMutation } from '@tanstack/react-query';
 
 import { signInRequest } from '@/apis/auth';
+import { useAuth } from '@/hooks/context/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -8,11 +11,21 @@ import { useToast } from '@/hooks/use-toast';
 
 export const useSignin = () => {
     const { toast } = useToast();
+    const { setAuth } = useAuth();
     const { isPending, isSuccess, error, mutateAsync: signinMutation } = useMutation({
         mutationFn: signInRequest,
         onSuccess: (response) => {
-            console.log('Scuccessfully signed in', response);
+            console.log('Successfully signed in', response);
+            const { token, ...user } = response.data;
+            
+            localStorage.setItem('user', JSON.stringify(user));
 
+            localStorage.setItem('token', token);
+            setAuth({
+                token:token,
+                user: user,
+                loading: false
+            });
 
             toast({
                 title: 'Successfully signed in',
