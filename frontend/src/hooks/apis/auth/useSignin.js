@@ -6,31 +6,37 @@ import { signInRequest } from '@/apis/auth';
 import { useAuth } from '@/hooks/context/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
-
-
-
 export const useSignin = () => {
     const { toast } = useToast();
     const { setAuth } = useAuth();
-    const { isPending, isSuccess, error, mutateAsync: signinMutation } = useMutation({
+
+    const {
+        isPending,
+        isSuccess,
+        error,
+        mutateAsync: signinMutation,
+    } = useMutation({
         mutationFn: signInRequest,
         onSuccess: (response) => {
             console.log('Successfully signed in', response);
-            const { token, ...user } = response.data;
-            
-            localStorage.setItem('user', JSON.stringify(user));
 
+            // Correct destructuring
+            const { token, user } = response.data;
+
+            // Save user and token properly
+            localStorage.setItem('user', JSON.stringify(user));
             localStorage.setItem('token', token);
+
             setAuth({
-                token:token,
+                token: token,
                 user: user,
-                loading: false
+                loading: false,
             });
 
             toast({
                 title: 'Successfully signed in',
                 message: 'You will be redirected to the home page in a few seconds',
-                type: 'success'
+                type: 'success',
             });
         },
         onError: (error) => {
@@ -39,14 +45,15 @@ export const useSignin = () => {
                 title: 'Failed to sign in',
                 message: error.message,
                 type: 'error',
-                variant: 'destructive'
+                variant: 'destructive',
             });
-        }
+        },
     });
+
     return {
         isPending,
         isSuccess,
         error,
-        signinMutation
+        signinMutation,
     };
 };

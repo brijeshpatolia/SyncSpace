@@ -1,11 +1,11 @@
 import { Route, Routes } from 'react-router-dom';
 
+import { ProtectedRoute } from '@/components/molecules/ProtectedRoute/ProtectedRoute';
 import { SigninContainer } from '@/components/organisms/Auth/SignInContainer';
 import { SignUpContainer } from '@/components/organisms/Auth/SignUpContainer';
 import { Auth } from '@/pages/Auth/Auth';
 import { Notfound } from '@/pages/Notfound/Notfound';
 
-import { ProtectedRoute } from './components/molecules/ProtectedRoute/ProtectedRoute';
 import Home from './pages/home/Home';
 
 export const AppRoutes = () => {
