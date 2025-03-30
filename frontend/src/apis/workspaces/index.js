@@ -3,7 +3,7 @@ import axios from '@/config/axiosConfig';
 
 export const fetchWorkspacesRequest = async ({ token }) => {
     try {
-        const response = await axios.get('/list', {
+        const response = await axios.get('/workspaces/list', {
             headers: {
                 'x-access-token': token
             }
@@ -13,6 +13,24 @@ export const fetchWorkspacesRequest = async ({ token }) => {
 
     } catch (error) {
         console.log('Error in fetching workspace request', error);
+        throw error.response.data;
+    }
+};
+
+
+export const createWorkspaceRequest = async ({ name, description, token }) => {
+
+    try {
+        const response = await axios.post('/workspaces/create', { name, description}, {
+            headers: {
+                'x-access-token': token
+            }
+        });
+        console.log('Response in create workspace request', response);
+        return response?.data?.data;
+
+    } catch(error) {
+        console.log('Error in create workspace request', error);
         throw error.response.data;
     }
 };
