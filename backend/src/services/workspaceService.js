@@ -43,21 +43,26 @@ export const getAllWorkspacesService = async (memberId) => {
       throw customErrorResponse({
         message: 'Member ID is required.',
         statusCode: StatusCodes.BAD_REQUEST
-      })
+      });
     }
 
-    const workspaces =
-      await workspaceRepository.fetchAllWorkspaceByMemberId(memberId)
+    const workspaces = await workspaceRepository.fetchAllWorkspaceByMemberId(memberId);
 
-    return workspaces
+    // ✅ Return empty array with success instead of throwing an error
+    if (!workspaces || workspaces.length === 0) {
+      return []; // returning empty instead of throwing error
+    }
+
+    return workspaces;
   } catch (error) {
-    console.error('Error fetching all workspaces:', error)
+    console.error('Error fetching all workspaces:', error);
     throw customErrorResponse({
       message: error.message || 'Error fetching all workspaces.',
       statusCode: error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR
-    })
+    });
   }
-}
+};
+
 
 export const deleteWorkspaceService = async (workspaceId, userId) => {
   try {

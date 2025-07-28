@@ -140,12 +140,7 @@ const workspaceRepository = {
         'members.memberId': memberId
       }).populate('members.memberId', 'username email avatar')
 
-      if (!workspaces || workspaces.length === 0) {
-        throw customErrorResponse({
-          message: 'No workspaces found for this member',
-          statusCode: StatusCodes.NOT_FOUND
-        })
-      }
+      
 
       return workspaces
     } catch (error) {

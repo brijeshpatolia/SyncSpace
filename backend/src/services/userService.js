@@ -43,7 +43,7 @@ export const signInService = async (data) => {
         const token = createJWT({ id: user._id, email: user.email })
        
 
-        return token;
+        return {token, user};
     } catch (error) {
         console.error("Sign-in Error:", error);
         throw error;

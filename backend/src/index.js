@@ -3,6 +3,7 @@ import { PORT } from './config/serverConfig.js'
 import apiRouter from './routes/apiRoutes.js'
 import StatusCodes from 'http-status-codes'
 import connectDB from './config/dbconfig.js'
+import cors from 'cors'
 import bullBoardApp from './server/bullboard.js'
 import { Server } from 'socket.io'
 import { createServer } from 'http'
@@ -13,7 +14,7 @@ const app = express()
 const server = createServer(app)
 
 export const io = new Server(server)
-
+app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use('/api', apiRouter)

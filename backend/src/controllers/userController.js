@@ -16,8 +16,10 @@ export const signUp = async (req, res) => {
 
 export const signIn = async (req, res) => {
     try {
-        const token = await signInService(req.body);
-        return res.status(StatusCodes.OK).json(successResponse({ token }, "User signed in successfully"));
+        const {token ,user} = await signInService(req.body);
+       
+        // TODO: Implement JWT token generation and send it to the client instead of the token itself
+        return res.status(StatusCodes.OK).json(successResponse({ token , user  }, "User signed in successfully"));
     } catch (error) {
         console.log('User Controller Error:', error);
         return res

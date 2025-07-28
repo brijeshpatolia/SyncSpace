@@ -3,6 +3,8 @@ import { BellIcon, HomeIcon, MessageSquareIcon, MoreHorizontalIcon } from 'lucid
 import { UserButton } from '@/components/atoms/UserButton/UserButton';
 import { SidebarButton } from '@/components/molecules/SidebarButton/SidebarButton';
 
+import { WorkspaceSwitcher } from './WorkspaceSwitcher';
+
 // import { WorkspaceSwitcher } from '@/components/organisms/Workspace/WorkspaceSwitcher';
 
 export const WorkspaceSidebar = () => {
@@ -10,9 +12,9 @@ export const WorkspaceSidebar = () => {
         <aside
             className="w-[70px] h-full bg-slack-dark flex flex-col gap-y-4 items-center pt-[10px] pb-[5px]"
         >
-            {/* <WorkspaceSwitcher /> */}
+            <WorkspaceSwitcher /> 
 
-            <SidebarButton 
+            <SidebarButton
                 Icon={HomeIcon}
                 label="Home"
             />
