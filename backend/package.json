@@ -8,7 +8,7 @@
     "start": "npx nodemon src/index.js",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "lint:fix": "eslint --fix."
+    "lint:fix": "eslint --fix --watch ."
   },
   "keywords": [],
   "author": "",
