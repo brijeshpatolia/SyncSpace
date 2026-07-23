@@ -13,7 +13,12 @@ import messageHandler from './controllers/channelSocketController.js'
 const app = express()
 const server = createServer(app)
 
-export const io = new Server(server)
+export const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+})
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))

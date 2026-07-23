@@ -47,6 +47,10 @@ export const createMessageService = async ({ body, image }, userId, channelId) =
             workspaceId: channel.workspaceId
         });
 
+        // Populate the sender so REST responses and the realtime socket payload
+        // both carry the author's identity (needed to render the message list).
+        await newMessage.populate('senderId', 'username email avatar');
+
         console.log("[SUCCESS] Message created:", newMessage);
         return newMessage;
     } catch (error) {

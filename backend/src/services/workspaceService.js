@@ -121,7 +121,12 @@ export const getWorkspaceService = async (workspaceId, userId) => {
         statusCode: StatusCodes.BAD_REQUEST
       })
     }
-    const workspace = await workspaceRepository.getById(workspaceId)
+    // Populate channels so the workspace panel can render channel names.
+    // NOTE: members are intentionally left unpopulated here so the existing
+    // membership/admin checks (member.memberId.toString() === userId) keep working.
+    const workspace = await workspaceRepository.model
+      .findById(workspaceId)
+      .populate('channels')
     console.log('[DEBUG] Workspace fetched:', workspace)
 
     if (!workspace) {

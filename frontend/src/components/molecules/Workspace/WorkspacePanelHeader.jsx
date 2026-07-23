@@ -1,8 +1,9 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
-import { ChevronDownIcon, ListFilterIcon, Edit } from 'lucide-react';
+import { ChevronDownIcon, Edit,ListFilterIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/context/useAuth';
+import { useWorkspacePreferenceModal } from '@/hooks/context/useWorkspacePreferenceModal';
 
 export const WorkspacePanelHeader = ({workspace}) => {
     const workspacemembers = workspace?.members ;
@@ -11,6 +12,7 @@ export const WorkspacePanelHeader = ({workspace}) => {
     console.log(auth.user._id);
     const isLoggedInUserAdminofWorkspace = workspacemembers?.find(member => member.memberId === auth?.user?._id && member.role === 'Admin');
     console.log(isLoggedInUserAdminofWorkspace);
+    const { setOpenPreferences} = useWorkspacePreferenceModal();
  return (
     <div className="flex items-center justify-between px-4 h-[50px] gap-2">
         <DropdownMenu>
@@ -41,7 +43,8 @@ export const WorkspacePanelHeader = ({workspace}) => {
                 {isLoggedInUserAdminofWorkspace && (
                     <>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className='cursor-pointer p-2 rounded-md hover:bg-gray-50 transition-colors'>
+                        <DropdownMenuItem className='cursor-pointer p-2 rounded-md hover:bg-gray-50 transition-colors'
+                        onClick={() => setOpenPreferences(true)}>
                             Preferences
                         </DropdownMenuItem>
                         <DropdownMenuItem className='cursor-pointer p-2 rounded-md hover:bg-gray-50 transition-colors'>
