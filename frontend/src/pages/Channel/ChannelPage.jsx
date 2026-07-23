@@ -5,19 +5,29 @@ import { useParams } from 'react-router-dom';
 
 import { ChatInput } from '@/components/molecules/Message/ChatInput';
 import { MessageList } from '@/components/organisms/Messages/MessageList';
-import { NEW_MESSAGE_EVENT } from '@/context/SocketContext';
+import {
+    MESSAGE_DELETED_EVENT,
+    MESSAGE_UPDATED_EVENT,
+    NEW_MESSAGE_EVENT
+} from '@/context/SocketContext';
 import { useGetChannelById } from '@/hooks/apis/channels/useGetChannelById';
 import { useCreateMessage } from '@/hooks/apis/messages/useCreateMessage';
+import { useDeleteMessage } from '@/hooks/apis/messages/useDeleteMessage';
 import { useGetChannelMessages } from '@/hooks/apis/messages/useGetChannelMessages';
+import { useUpdateMessage } from '@/hooks/apis/messages/useUpdateMessage';
 import { useSocket } from '@/hooks/context/useSocket';
+import { useToast } from '@/hooks/use-toast';
 
 export const ChannelPage = () => {
     const { channelId } = useParams();
     const queryClient = useQueryClient();
+    const { toast } = useToast();
 
     const { channel, isFetching: isChannelFetching, isSuccess } = useGetChannelById(channelId);
     const { messages, isLoading: areMessagesLoading } = useGetChannelMessages(channelId);
     const { createMessageMutation } = useCreateMessage(channelId);
+    const { updateMessageMutation } = useUpdateMessage();
+    const { deleteMessageMutation } = useDeleteMessage();
     const { socket, joinChannel } = useSocket();
 
     const messagesQueryKey = `fetchMessages-${channelId}`;
@@ -28,21 +38,44 @@ export const ChannelPage = () => {
         (message) => {
             queryClient.setQueryData([messagesQueryKey], (old) => {
                 const list = Array.isArray(old) ? old : [];
-                if (list.some((m) => m._id === message._id)) return list;
+                const idx = list.findIndex((m) => m._id === message._id);
+                if (idx >= 0) {
+                    const next = list.slice();
+                    next[idx] = message;
+                    return next;
+                }
                 return [message, ...list];
             });
         },
         [queryClient, messagesQueryKey]
     );
 
-    // Join the channel room and subscribe to realtime messages.
+    const removeMessage = useCallback(
+        (messageId) => {
+            queryClient.setQueryData([messagesQueryKey], (old) => {
+                const list = Array.isArray(old) ? old : [];
+                return list.filter((m) => m._id !== messageId);
+            });
+        },
+        [queryClient, messagesQueryKey]
+    );
+
+    // Join the channel room and subscribe to realtime events.
     useEffect(() => {
         if (!socket || !channelId) return;
         joinChannel(channelId);
-        const handler = (message) => upsertMessage(message);
-        socket.on(NEW_MESSAGE_EVENT, handler);
+
+        const newHandler = (message) => upsertMessage(message);
+        const updHandler = (message) => upsertMessage(message);
+        const delHandler = ({ messageId }) => removeMessage(messageId);
+
+        socket.on(NEW_MESSAGE_EVENT, newHandler);
+        socket.on(MESSAGE_UPDATED_EVENT, updHandler);
+        socket.on(MESSAGE_DELETED_EVENT, delHandler);
         return () => {
-            socket.off(NEW_MESSAGE_EVENT, handler);
+            socket.off(NEW_MESSAGE_EVENT, newHandler);
+            socket.off(MESSAGE_UPDATED_EVENT, updHandler);
+            socket.off(MESSAGE_DELETED_EVENT, delHandler);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [socket, channelId]);
@@ -51,6 +84,31 @@ export const ChannelPage = () => {
         const saved = await createMessageMutation({ body });
         // Reflect immediately in case the socket echo is delayed; dedup handles overlap.
         if (saved?._id) upsertMessage(saved);
+    }
+
+    async function handleEdit(messageId, body) {
+        try {
+            const updated = await updateMessageMutation({ messageId, body });
+            if (updated?._id) upsertMessage(updated);
+        } catch (error) {
+            toast({
+                title: error?.message || 'Could not edit message',
+                variant: 'destructive'
+            });
+            throw error;
+        }
+    }
+
+    async function handleDelete(messageId) {
+        try {
+            await deleteMessageMutation({ messageId });
+            removeMessage(messageId);
+        } catch (error) {
+            toast({
+                title: error?.message || 'Could not delete message',
+                variant: 'destructive'
+            });
+        }
     }
 
     if (isChannelFetching) {
@@ -77,7 +135,12 @@ export const ChannelPage = () => {
                 <span className="font-semibold text-gray-900">{channel.name}</span>
             </div>
 
-            <MessageList messages={messages ?? []} isLoading={areMessagesLoading} />
+            <MessageList
+                messages={messages ?? []}
+                isLoading={areMessagesLoading}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+            />
 
             <ChatInput
                 onSubmit={handleSend}

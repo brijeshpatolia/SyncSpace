@@ -3,7 +3,7 @@ import {
   customErrorResponse,
   successResponse
 } from '../utils/common/responseObjects.js';
-import { createMessageService, getMessagesService } from '../services/messagesService.js';
+import { createMessageService, deleteMessageService, getMessagesService, updateMessageService } from '../services/messagesService.js';
 import { io } from '../index.js';
 
 
@@ -77,6 +77,54 @@ export const createMessageController = async (req, res) => {
     return res.status(StatusCodes.CREATED).json(successResponse(savedMessage, 'Message created successfully!'));
   } catch (error) {
     console.error('[ERROR] Exception in createMessageController:', error);
+    return res.status(error?.statusCode || StatusCodes.INTERNAL_SERVER_ERROR).json(
+      customErrorResponse({
+        message: error?.message || 'Internal Server Error',
+        statusCode: error?.statusCode || StatusCodes.INTERNAL_SERVER_ERROR
+      })
+    );
+  }
+};
+
+export const updateMessageController = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { messageId } = req.params;
+    const { body } = req.body;
+
+    if (!body) {
+      return res.status(StatusCodes.BAD_REQUEST).json(
+        customErrorResponse({
+          message: 'Message body is required.',
+          statusCode: StatusCodes.BAD_REQUEST
+        })
+      );
+    }
+
+    const updated = await updateMessageService(messageId, userId, body);
+    io.to(updated.channelId.toString()).emit('messageUpdated', updated);
+    return res.status(StatusCodes.OK).json(successResponse(updated, 'Message updated successfully!'));
+  } catch (error) {
+    console.error('[ERROR] Exception in updateMessageController:', error);
+    return res.status(error?.statusCode || StatusCodes.INTERNAL_SERVER_ERROR).json(
+      customErrorResponse({
+        message: error?.message || 'Internal Server Error',
+        statusCode: error?.statusCode || StatusCodes.INTERNAL_SERVER_ERROR
+      })
+    );
+  }
+};
+
+export const deleteMessageController = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { messageId } = req.params;
+
+    const result = await deleteMessageService(messageId, userId);
+    io.to(result.channelId.toString()).emit('messageDeleted', { messageId: result.messageId });
+    return res.status(StatusCodes.OK).json(successResponse(result, 'Message deleted successfully!'));
+  } catch (error) {
+    console.error('[ERROR] Exception in deleteMessageController:', error);
     return res.status(error?.statusCode || StatusCodes.INTERNAL_SERVER_ERROR).json(
       customErrorResponse({
         message: error?.message || 'Internal Server Error',

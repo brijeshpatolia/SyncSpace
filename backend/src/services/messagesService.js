@@ -27,6 +27,60 @@ export const getMessagesService = async (messageParams, page, limit, userId) => 
     }
 };
 
+export const updateMessageService = async (messageId, userId, body) => {
+    try {
+        const message = await messageRepository.getById(messageId);
+        if (!message) {
+            throw customErrorResponse({
+                message: "Message not found.",
+                statusCode: StatusCodes.NOT_FOUND
+            });
+        }
+
+        // Only the author can edit their own message.
+        if (message.senderId.toString() !== userId) {
+            throw customErrorResponse({
+                message: "You can only edit your own messages.",
+                statusCode: StatusCodes.FORBIDDEN
+            });
+        }
+
+        message.body = body;
+        await message.save();
+        await message.populate('senderId', 'username email avatar');
+        return message;
+    } catch (error) {
+        console.error("[ERROR] updateMessageService:", error);
+        throw error;
+    }
+};
+
+export const deleteMessageService = async (messageId, userId) => {
+    try {
+        const message = await messageRepository.getById(messageId);
+        if (!message) {
+            throw customErrorResponse({
+                message: "Message not found.",
+                statusCode: StatusCodes.NOT_FOUND
+            });
+        }
+
+        if (message.senderId.toString() !== userId) {
+            throw customErrorResponse({
+                message: "You can only delete your own messages.",
+                statusCode: StatusCodes.FORBIDDEN
+            });
+        }
+
+        const channelId = message.channelId;
+        await messageRepository.delete(messageId);
+        return { messageId, channelId };
+    } catch (error) {
+        console.error("[ERROR] deleteMessageService:", error);
+        throw error;
+    }
+};
+
 export const createMessageService = async ({ body, image }, userId, channelId) => {
     try {
         const channel = await Channel.findById(channelId);

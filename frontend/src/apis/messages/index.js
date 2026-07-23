@@ -32,3 +32,35 @@ export const createMessageRequest = async ({ channelId, body, image, token }) =>
         throw error?.response?.data ?? error;
     }
 };
+
+export const updateMessageRequest = async ({ messageId, body, token }) => {
+    try {
+        const response = await axios.put(
+            `/messages/${messageId}`,
+            { body },
+            {
+                headers: {
+                    'x-access-token': token
+                }
+            }
+        );
+        return response?.data?.data;
+    } catch (error) {
+        console.log('Error in update message request', error);
+        throw error?.response?.data ?? error;
+    }
+};
+
+export const deleteMessageRequest = async ({ messageId, token }) => {
+    try {
+        const response = await axios.delete(`/messages/${messageId}`, {
+            headers: {
+                'x-access-token': token
+            }
+        });
+        return response?.data?.data;
+    } catch (error) {
+        console.log('Error in delete message request', error);
+        throw error?.response?.data ?? error;
+    }
+};

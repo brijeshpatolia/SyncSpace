@@ -11,6 +11,8 @@ const SOCKET_URL =
 
 export const JOIN_CHANNEL_EVENT = 'join_channel';
 export const NEW_MESSAGE_EVENT = 'newMessage';
+export const MESSAGE_UPDATED_EVENT = 'messageUpdated';
+export const MESSAGE_DELETED_EVENT = 'messageDeleted';
 
 export const SocketContextProvider = ({ children }) => {
     const [currentChannel, setCurrentChannel] = useState(null);

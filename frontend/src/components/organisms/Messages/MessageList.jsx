@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 
 import { Message } from '@/components/molecules/Message/Message';
 
-export const MessageList = ({ messages = [], isLoading }) => {
+export const MessageList = ({ messages = [], isLoading, onEdit, onDelete }) => {
     const bottomRef = useRef(null);
 
     // Backend returns newest-first; display oldest-first (chat order).
@@ -30,7 +30,12 @@ export const MessageList = ({ messages = [], isLoading }) => {
             ) : (
                 <div className="flex flex-col py-4">
                     {ordered.map((message) => (
-                        <Message key={message._id} message={message} />
+                        <Message
+                            key={message._id}
+                            message={message}
+                            onEdit={onEdit}
+                            onDelete={onDelete}
+                        />
                     ))}
                     <div ref={bottomRef} />
                 </div>
