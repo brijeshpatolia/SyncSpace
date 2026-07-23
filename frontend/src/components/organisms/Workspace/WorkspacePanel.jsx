@@ -1,8 +1,10 @@
-import { AlertTriangleIcon, HashIcon, Loader, PlusIcon } from 'lucide-react';
+import { AlertTriangleIcon, CircleIcon, HashIcon, Loader, PlusIcon } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { CreateChannelModal } from '@/components/molecules/Channel/CreateChannelModal';
+import { InviteMemberModal } from '@/components/molecules/Workspace/InviteMemberModal';
 import { WorkspacePanelHeader } from '@/components/molecules/Workspace/WorkspacePanelHeader';
+import { WorkspacePreferenceModal } from '@/components/molecules/Workspace/WorkspacePreferenceModal';
 import { useGetWorkspaceById } from '@/hooks/apis/workspaces/useGetWorkspaceById';
 import { useAuth } from '@/hooks/context/useAuth';
 import { useCreateChannelModal } from '@/hooks/context/useCreateChannelModal';
@@ -33,10 +35,10 @@ export const WorkspacePanel = () => {
         );
     }
 
-    const isAdmin = workspace?.members?.some(
-        (member) =>
-            member.memberId === auth?.user?._id && member.role === 'Admin'
-    );
+    const isAdmin = workspace?.members?.some((member) => {
+        const memberIdStr = String(member?.memberId?._id ?? member?.memberId);
+        return memberIdStr === auth?.user?._id && member.role === 'Admin';
+    });
 
     const channels = workspace?.channels ?? [];
 
@@ -90,7 +92,44 @@ export const WorkspacePanel = () => {
                 </div>
             </div>
 
+            <div className="flex flex-col px-2 mt-5">
+                <span className="px-2 text-sm font-semibold text-white/70">
+                    Members ({workspace?.members?.length ?? 0})
+                </span>
+                <div className="flex flex-col mt-1">
+                    {(workspace?.members ?? []).map((member, idx) => {
+                        // members.memberId may be an id string OR a populated user object,
+                        // depending on the endpoint. Handle both shapes.
+                        const isPopulated =
+                            member?.memberId && typeof member.memberId === 'object';
+                        const displayName = isPopulated
+                            ? member.memberId.username || member.memberId.email
+                            : `Member ${idx + 1}`;
+                        return (
+                            <div
+                                key={
+                                    (isPopulated
+                                        ? member.memberId._id
+                                        : member?.memberId) || idx
+                                }
+                                className="flex items-center gap-2 px-2 py-1 text-sm text-white/80 truncate"
+                            >
+                                <CircleIcon className="size-2 fill-green-500 text-green-500 shrink-0" />
+                                <span className="truncate">{displayName}</span>
+                                {member?.role === 'Admin' && (
+                                    <span className="ml-auto text-[10px] uppercase tracking-wider text-white/50">
+                                        Admin
+                                    </span>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
             <CreateChannelModal />
+            <WorkspacePreferenceModal />
+            <InviteMemberModal />
         </div>
     );
 };

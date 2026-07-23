@@ -121,12 +121,11 @@ export const getWorkspaceService = async (workspaceId, userId) => {
         statusCode: StatusCodes.BAD_REQUEST
       })
     }
-    // Populate channels so the workspace panel can render channel names.
-    // NOTE: members are intentionally left unpopulated here so the existing
-    // membership/admin checks (member.memberId.toString() === userId) keep working.
+    // Populate channels and members so the workspace panel can render names.
     const workspace = await workspaceRepository.model
       .findById(workspaceId)
       .populate('channels')
+      .populate('members.memberId', 'username email avatar')
     console.log('[DEBUG] Workspace fetched:', workspace)
 
     if (!workspace) {
@@ -140,9 +139,12 @@ export const getWorkspaceService = async (workspaceId, userId) => {
     console.log('[DEBUG] Checking if user is a member of the workspace...')
     console.log('[DEBUG] Workspace Members:', workspace.members)
 
-    const isAllowed = workspace.members.some(
-      (member) => member.memberId.toString() === userId
-    )
+    // member.memberId is now a populated User document, so compare by its _id
+    // (fall back to the raw id if population was skipped for any reason).
+    const isAllowed = workspace.members.some((member) => {
+      const memberIdStr = String(member.memberId?._id ?? member.memberId)
+      return memberIdStr === userId
+    })
 
     if (!isAllowed) {
       console.error(

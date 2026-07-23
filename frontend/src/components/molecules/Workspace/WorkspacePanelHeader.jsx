@@ -3,6 +3,7 @@ import { ChevronDownIcon, Edit,ListFilterIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/context/useAuth';
+import { useInviteMemberModal } from '@/hooks/context/useInviteMemberModal';
 import { useWorkspacePreferenceModal } from '@/hooks/context/useWorkspacePreferenceModal';
 
 export const WorkspacePanelHeader = ({workspace}) => {
@@ -10,9 +11,13 @@ export const WorkspacePanelHeader = ({workspace}) => {
     console.log(workspacemembers);
     const {auth} = useAuth();
     console.log(auth.user._id);
-    const isLoggedInUserAdminofWorkspace = workspacemembers?.find(member => member.memberId === auth?.user?._id && member.role === 'Admin');
+    const isLoggedInUserAdminofWorkspace = workspacemembers?.find(member => {
+        const memberIdStr = String(member?.memberId?._id ?? member?.memberId);
+        return memberIdStr === auth?.user?._id && member.role === 'Admin';
+    });
     console.log(isLoggedInUserAdminofWorkspace);
-    const { setOpenPreferences} = useWorkspacePreferenceModal();
+    const { setOpenPreferences, setInitialValue } = useWorkspacePreferenceModal();
+    const { setOpenInviteMemberModal } = useInviteMemberModal();
  return (
     <div className="flex items-center justify-between px-4 h-[50px] gap-2">
         <DropdownMenu>
@@ -44,10 +49,14 @@ export const WorkspacePanelHeader = ({workspace}) => {
                     <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className='cursor-pointer p-2 rounded-md hover:bg-gray-50 transition-colors'
-                        onClick={() => setOpenPreferences(true)}>
+                        onClick={() => {
+                            setInitialValue(workspace?.name || '');
+                            setOpenPreferences(true);
+                        }}>
                             Preferences
                         </DropdownMenuItem>
-                        <DropdownMenuItem className='cursor-pointer p-2 rounded-md hover:bg-gray-50 transition-colors'>
+                        <DropdownMenuItem className='cursor-pointer p-2 rounded-md hover:bg-gray-50 transition-colors'
+                        onClick={() => setOpenInviteMemberModal(true)}>
                             Invite member to {workspace?.name}
                         </DropdownMenuItem>
                     </>
